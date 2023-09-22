@@ -30,7 +30,7 @@ create:
 $(OBJSDIR)/$(TARGET) : $(OBJS)
 	@echo ---------- BUILD PROJECT ----------
 	@$(CC) $^ -o $@ $(CFLAGS) 
-	@echo $(GREEN)"--Compiling '$(OBJSDIR)/$(TARGET)'"$(NONE) $(BLUE)"OK"$(NONE)
+	@echo $(GREEN)"--Compiling executable file '$(OBJSDIR)/$(TARGET)'"$(NONE) $(BLUE)"OK"$(NONE)
 
 $(OBJSDIR)/%.o:%.c $(HDRS)
 	@$(CC) -c $< -o $@ $(CFLAGS) 
