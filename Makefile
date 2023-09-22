@@ -1,41 +1,50 @@
--include ./Makefile.mk
+.PHONY: all, clean ,create
 
-.PHONY: all clean
+TARGET= app
 
-MODUN_NAME	=	main
-PROJECT_DIR	=	$(shell pwd)
-VERSION		=	1.0.0
+CROSSCOMPILE =
+PROJECT_DIR  = $(PWD)
+OBJSDIR=  $(PROJECT_DIR)/build
+CC   = 	  $(CROSSCOMPILE)gcc  
+CXX  = 	  $(CROSSCOMPILE)g++ 
 
-OBJ_DIR		=	_build
+# add color
+RED?= "\033[0;31;1m"
+GREEN?= "\033[0;32;3m"
+BLUE?= "\033[3;36m"
+YELLOW?= "033[0;33;1m"
+NONE?="\033[0m"
+GOTOY?= "\033[%dC"
 
-CPP=g++
+CFLAGS += -Wall -g -pthread
 
+include $(PROJECT_DIR)/source/Makefile.mk
 
-RED="\033[1;31m"
-GREEN="\033[3;32m"
-BLUE="\033[3;34m"
-YELLO="\033[1;33m"
-NONE="\033[0m"
+LDFLAGS =
 
-all: create $(OBJ_DIR)/$(MODUN_NAME)
-	@echo ""
+all: create $(OBJSDIR)/$(TARGET)
 
 create:
-	@mkdir -p $(OBJ_DIR)
+	@mkdir -p $(OBJSDIR)
+
+$(OBJSDIR)/$(TARGET) : $(OBJS)
+	@echo ---------- BUILD PROJECT ----------
+	@$(CC) $^ -o $@ $(CFLAGS) 
+	@echo $(GREEN)"--Compiling '$(OBJSDIR)/$(TARGET)'"$(NONE) $(BLUE)"OK"$(NONE)
+
+$(OBJSDIR)/%.o:%.c $(HDRS)
+	@$(CC) -c $< -o $@ $(CFLAGS) 
+	@echo $(GREEN)"--Compiling '$<'--"$(NONE) $(BLUE)"OK"$(NONE)
 
 
-clean:
-	rm -rf $(OBJ_DIR)
+$(OBJSDIR)/%.o:%.cpp $(HDRS)
+	@$(CXX) -c $< -o $@ $(CFLAGS) 
+	@echo $(GREEN)"--Compiling '$<'--"$(NONE) $(BLUE)"OK"$(NONE)
 
-$(OBJ_DIR)/$(MODUN_NAME): $(OBJ) 
-	@echo $(BLUE) "link app" $@  haha $(NONE)
-	@$(CPP) -o $@  $(OBJ) $(CFLAGS) $(LIBS)
 
-$(OBJ_DIR)/%.o: %.cpp
-	@echo $(GREEN) CPP  $< $(NONE)
-	@$(CPP) -o $@ -c $< $(CFLAGS)
+clean: 
+	rm -rf $(OBJSDIR)
+	@echo $(GREEN)"--Remove '$(OBJSDIR)'--"$(NONE) $(BLUE)"OK"$(NONE)
+	@echo ""
 
-$(OBJ_DIR)/%.o: %.c
-	@echo $(GREEN) CC  $< $(NONE)
-	@$(CC) -o $@ -c $< $(CFLAGS)
-
+	
