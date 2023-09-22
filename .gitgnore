@@ -1,4 +1,4 @@
 .vcode/
-_build
+build
 *.o
 *.so
