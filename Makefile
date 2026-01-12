@@ -1,50 +1,94 @@
-.PHONY: all, clean ,create
+# ============================================================
+#  Project: Makefile
+# Description: Simple Makefile for C projects
+# Author: KhangKT
+# Date: 2026-01-12
+# ============================================================
 
-TARGET= app
+.PHONY: all clean create info
 
-CROSSCOMPILE =
-PROJECT_DIR  = $(PWD)
-OBJSDIR=  $(PROJECT_DIR)/build
-CC   = 	  $(CROSSCOMPILE)gcc  
-CXX  = 	  $(CROSSCOMPILE)g++ 
+# ------------------------------------------------------------
+#  Directories
+# ------------------------------------------------------------
+PROJECT_DIR := $(PWD)
+SRC_DIR     := $(PROJECT_DIR)/source
+INC_DIR     := $(PROJECT_DIR)/include
+OBJ_DIR     := $(PROJECT_DIR)/build
+LIB_DIR     := $(PROJECT_DIR)/libs
 
-# add color
-RED?= "\033[0;31;1m"
-GREEN?= "\033[0;32;3m"
-BLUE?= "\033[3;36m"
-YELLOW?= "033[0;33;1m"
-NONE?="\033[0m"
-GOTOY?= "\033[%dC"
+# ------------------------------------------------------------
+#  Toolchain
+# ------------------------------------------------------------
+CROSS_COMPILE ?=arm-linux
 
-CFLAGS += -Wall -g -pthread
+ifdef CROSS_COMPILE
+	CC  := $(CROSS_COMPILE)-gcc
+	CXX := $(CROSS_COMPILE)-g++
+else
+	CC  := gcc
+	CXX := g++
+endif
+# ------------------------------------------------------------
+#  Colors (for pretty output)
+# ------------------------------------------------------------
+GREEN  := \033[0;32m
+BLUE   := \033[0;36m
+YELLOW := \033[0;33m
+RED    := \033[0;31m
+RESET  := \033[0m
 
-include $(PROJECT_DIR)/source/Makefile.mk
+# ------------------------------------------------------------
+#  Flags
+# ------------------------------------------------------------
+INC_FLAGS := -I$(INC_DIR) 
+LIB_FLAGS := -L$(LIB_DIR)
 
-LDFLAGS =
+CFLAGS  := -Wall -Wextra -g -pthread $(INC_FLAGS)
+LDFLAGS := $(LIB_FLAGS)
+LDLIBS  := # -lm ...
 
-all: create $(OBJSDIR)/$(TARGET)
-
-create:
-	@mkdir -p $(OBJSDIR)
-
-$(OBJSDIR)/$(TARGET) : $(OBJS)
-	@echo ---------- BUILD PROJECT ----------
-	@$(CC) $^ -o $@ $(CFLAGS) 
-	@echo $(GREEN)"--Compiling executable file '$(OBJSDIR)/$(TARGET)'"$(NONE) $(BLUE)"OK"$(NONE)
-
-$(OBJSDIR)/%.o:%.c $(HDRS)
-	@$(CC) -c $< -o $@ $(CFLAGS) 
-	@echo $(GREEN)"--Compiling '$<'--"$(NONE) $(BLUE)"OK"$(NONE)
+# ------------------------------------------------------------
+#  Targets
+# ------------------------------------------------------------
+APP_BIN := $(OBJ_DIR)/main
 
 
-$(OBJSDIR)/%.o:%.cpp $(HDRS)
-	@$(CXX) -c $< -o $@ $(CFLAGS) 
-	@echo $(GREEN)"--Compiling '$<'--"$(NONE) $(BLUE)"OK"$(NONE)
+APP_OBJ := $(OBJ_DIR)/main.o
 
 
-clean: 
-	rm -rf $(OBJSDIR)
-	@echo $(GREEN)"--Remove '$(OBJSDIR)'--"$(NONE) $(BLUE)"OK"$(NONE)
+# ------------------------------------------------------------
+#  Default
+# ------------------------------------------------------------
+all: info create $(APP_BIN)
+
+info:
+	@echo "$(BLUE)========================================$(RESET)"
+	@echo "$(BLUE)  Building $(APP_BIN) $(RESET)"
+	@echo "$(BLUE)========================================$(RESET)"
+	@echo "$(YELLOW)Compiler :$(RESET) $(CC)"
+	@echo "$(YELLOW)CFLAGS   :$(RESET) $(CFLAGS)"
 	@echo ""
 
-	
+create:
+	@mkdir -p $(OBJ_DIR)
+
+# ------------------------------------------------------------
+#  Link
+# ------------------------------------------------------------
+$(APP_BIN): $(APP_OBJ)
+	@echo "$(GREEN)[LINK]$(RESET) $@"
+	@$(CC) $^ -o $@ $(LDFLAGS) $(LDLIBS)
+
+# ------------------------------------------------------------
+#  Compile
+# ------------------------------------------------------------
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@echo "$(BLUE)[CC]$(RESET) $<"
+	@$(CC) -c $< -o $@ $(CFLAGS)
+
+# ------------------------------------------------------------
+#  Clean
+# ------------------------------------------------------------
+clean:
+	@echo "$(RED)[CLEAN]$(RESET) remove build directory"
+	@rm -rf $(OBJ_DIR)
